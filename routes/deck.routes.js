@@ -30,7 +30,7 @@ router.post("/", async (req, res) => {
 
 router.get("/:deckId", async (req, res) => {
   try {
-    const response = await Deck.findById(req.params.deckId);
+    const response = await Deck.findById(req.params.deckId).populate("cards");
     res.status(200).json(response);
   } catch (e) {
     res.status(500).json({ message: e });
