@@ -2,6 +2,7 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const User = require("../models/User.model");
 const jwt = require("jsonwebtoken");
+const { isAuthenticated } = require("../middleware/jwt.middleware");
 
 const router = express.Router();
 
@@ -16,7 +17,7 @@ router.post("/signup", async (req, res) => {
 
         const foundUser = await User.findOne({ username });
         if (foundUser) {
-            res.status(400).json({ message: "User already exists" });
+            res.status(400).json({ message: "user already exists" });
             return;
         }
 
@@ -62,7 +63,11 @@ router.post("/login", async (req, res) => {
     )
 
     res.status(200).json({ authToken });
+});
 
+
+router.get("/verify", isAuthenticated, (req, res) => {
+    res.status(200).json(req.payload);
 });
 
 module.exports = router;
