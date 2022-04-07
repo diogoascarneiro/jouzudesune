@@ -8,7 +8,7 @@ const router = express.Router();
 
 router.post("/signup", async (req, res) => {
     try {
-        const { email, password, username } = req.body;
+        const { email, password, username, profilePicture } = req.body;
 
         if (!email || !password || !username) {
             res.status(400).json({ message: "missing fields" });
@@ -24,9 +24,9 @@ router.post("/signup", async (req, res) => {
         const salt = bcrypt.genSaltSync(10);
         const hashedPassword = bcrypt.hashSync(password, salt);
 
-        const createdUser = await User.create({ email, username, password: hashedPassword });
+        const createdUser = await User.create({ email, username, password: hashedPassword, profilePicture });
 
-        res.status(200).json({ email: createdUser.email, username: createdUser.username, _id: createdUser._id });
+        res.status(200).json({ email: createdUser.email, username: createdUser.username, _id: createdUser._id, profilePicture: createdUser.profilePicture });
     }
 
     catch (e) {

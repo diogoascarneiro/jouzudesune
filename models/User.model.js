@@ -23,7 +23,17 @@ const userSchema = new Schema(
     profilePicture: {
       type: String,
       default: "/images/profic.png"
-    }
+    },
+    cards: [{
+        id: {type: Schema.Types.ObjectId, ref: "Card"},
+       timesSeen: {type: Number, default: 0},
+       score: {type: Number}
+    }],
+    decks: [{
+      id: {type: Schema.Types.ObjectId, ref: "Deck"},
+      timesSeen: {type: Number, default: 0},
+      score: {type: Number}
+    }]
   },
   {
     timestamps: true
