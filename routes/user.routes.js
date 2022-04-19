@@ -52,4 +52,32 @@ router.put("/:userId", async (req, res) => {
             }
 })
 
+
+// Update user decks
+
+router.put("/:userId/updateDeckData", async (req, res) => {
+    try {
+        const {decks} = req.body;
+        const response = await User.findByIdAndUpdate(req.params.userId, {decks}, {new: true});
+        res.status(200).json(response);
+    }
+    catch (e) {
+        res.status(500).json({message:e})
+            }
+})
+
+
+// Update user cards
+
+router.put("/:userId/updateCardData", async (req, res) => {
+    try {
+        const {cards} = req.body;
+        const response = await User.findByIdAndUpdate(req.params.userId, {cards}, {new: true});
+        res.status(200).json(response);
+    }
+    catch (e) {
+        res.status(500).json({message:e})
+            }
+})
+
 module.exports = router;
