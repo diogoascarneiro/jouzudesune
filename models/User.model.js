@@ -22,7 +22,7 @@ const userSchema = new Schema(
     },
     profilePicture: {
       type: String,
-      default: "/images/profic.png"
+      default: "/img/placeholderProfilePic.png"
     },
     cards: [{
         id: {type: Schema.Types.ObjectId, ref: "Card"},
