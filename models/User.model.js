@@ -31,8 +31,8 @@ const userSchema = new Schema(
     }],
     decks: [{
       id: {type: Schema.Types.ObjectId, ref: "Deck"},
-      timesSeen: {type: Number, default: 0},
-      score: {type: Number}
+      timesPlayed: {type: Number, default: 0},
+      highScore: {type: Number}
     }]
   },
   {
