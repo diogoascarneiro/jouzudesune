@@ -59,7 +59,7 @@ router.get("/:userId/decks/:deckId", async (req, res) => {
       (elem) => elem.deckId == req.params.deckId
     );
     if (!deckInfo) {
-      res.status(204);
+      res.status(204).json({message: "No such deck"});
     } else {
       res.status(200).json(deckInfo);
     }
@@ -81,6 +81,8 @@ router.put("/:userId/decks/:deckId", async (req, res) => {
         { $push: { decks: deck } },
         { new: true }
       );
+      console.log('deck', deck);
+      console.log('updateResponse', updateResponse);
       res.status(200).json(updateResponse);
     } else {
       const updateResponse = await User.findOneAndUpdate(
