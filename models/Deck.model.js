@@ -4,9 +4,9 @@ const deckSchema = new Schema(
     {
         name: String,
         cards: [{type: Schema.Types.ObjectId, ref: "Card"}],
-        difficulty: String,
+        difficulty: Number,
         description: String,
-        image: String
+        image: {type: String, default: "/img/decks/default.jpg"}
     }
 )
 const Deck = model("Deck", deckSchema);

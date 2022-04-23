@@ -59,7 +59,7 @@ router.get("/:userId/decks/:deckId", async (req, res) => {
       (elem) => elem.deckId == req.params.deckId
     );
     if (!deckInfo) {
-      res.status(204).json({message: "No such deck"});
+      res.status(204).json({ message: "No such deck" });
     } else {
       res.status(200).json(deckInfo);
     }
@@ -81,8 +81,6 @@ router.put("/:userId/decks/:deckId", async (req, res) => {
         { $push: { decks: deck } },
         { new: true }
       );
-      console.log('deck', deck);
-      console.log('updateResponse', updateResponse);
       res.status(200).json(updateResponse);
     } else {
       const updateResponse = await User.findOneAndUpdate(
@@ -105,19 +103,105 @@ router.put("/:userId/decks/:deckId", async (req, res) => {
 
 // Update user cards
 
-router.put("/:userId/updateCardData", async (req, res) => {
+router.get("/:userId/cards/:cardId", async (req, res) => {
   try {
-    const { cards } = req.body;
-    const response = await User.findByIdAndUpdate(
-      req.params.userId,
-      { cards },
-      { new: true }
+    const response = await User.findById(req.params.userId);
+    const cardInfo = response.cards.find(
+      (elem) => elem.cardId == req.params.cardId
     );
-    res.status(200).json(response);
+    if (!cardInfo) {
+      res.status(204).json({ message: "No such card" });
+    } else {
+      res.status(200).json(cardInfo);
+    }
   } catch (e) {
     res.status(500).json({ message: e });
   }
 });
 
+router.put("/:userId/cards/:cardId", async (req, res) => {
+  try {
+    const card = req.body;
+    const response = await User.findById(req.params.userId);
+    const cardInfo = response.cards.find(
+      (elem) => elem.cardId == req.params.cardId
+    );
+    if (!cardInfo) {
+      const updateResponse = await User.findByIdAndUpdate(
+        req.params.userId,
+        { $push: { cards: card } },
+        { new: true }
+      );
+      res.status(200).json(updateResponse);
+    } else {
+      const updateResponse = await User.findOneAndUpdate(
+        { _id: req.params.userId, "cards.cardId": req.params.cardId },
+        {
+          $set: {
+            "cards.$.cardId": card.cardId,
+            "cards.$.timesSeen": card.timesSeen,
+            "cards.$.score": card.score,
+          },
+        },
+        { new: true }
+      );
+      res.status(200).json(updateResponse);
+    }
+  } catch (e) {
+    res.status(500).json({ message: e });
+  }
+});
+
+// this updates a deck's worth of cards all at once to avoid unecessary calls to the db
+
+router.put("/:userId/cards/", async (req, res) => {
+  try {
+    const cards = req.body;
+    // const matchingCards = [];
+    // const nonMatchingCards = [];
+    const response = await User.findById(req.params.userId);
+
+    const newUserCardsArray = [...response.cards];
+    const userSeenCardIds = {};
+
+
+    /* First we need to check which of the cards we're adding/updating are already
+       part of the user.cards array and which aren't, then add the "timesSeen" value accordingly.
+       Finally we remove the identical cards from the user-cards array, push the new ones, clean it up and boom
+    */
+
+    response.cards.forEach(
+      (card) => (userSeenCardIds[`${card.cardId}`] = true)
+    );
+    console.log('userSeenCardIds', userSeenCardIds);
+    cards.forEach((card) => {
+      let updatedCard = { ...card };
+      if (userSeenCardIds[`${card.cardId}`]) {
+        updatedCard.timesSeen = card.timesSeen + 1;
+        delete newUserCardsArray[
+          newUserCardsArray.findIndex((elem) => elem.cardId == card.cardId)
+        ];
+        newUserCardsArray.push(updatedCard);
+      } else {
+        updatedCard.timesSeen = 1;
+        newUserCardsArray.push(updatedCard);
+      }
+    });
+    console.log('newUserCardsArray', newUserCardsArray);
+    const cleanUserCardsArray = newUserCardsArray.filter(
+      (elem) => elem !== undefined
+    );
+      console.log('cleanUserCardsArray', cleanUserCardsArray);
+    const updateResponse = await User.findByIdAndUpdate(
+      req.params.userId,
+      { cards: cleanUserCardsArray },
+      { new: true }
+    );
+
+    res.status(200).json(updateResponse);
+  } catch (e) {
+    res.status(500).json({ message: e.message });
+  }
+});
 
 module.exports = router;
