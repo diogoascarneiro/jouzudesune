@@ -17,7 +17,7 @@ router.get("/", async (req, res) => {
 // Get specific user
 router.get("/:userId", async (req, res) => {
   try {
-    const response = await User.findById(req.params.userId);
+    const response = await User.findById(req.params.userId).populate(["decks.deckId", "cards.cardId"]);
     res.status(200).json(response);
   } catch (e) {
     res.status(500).json({ message: e });
@@ -156,7 +156,7 @@ router.put("/:userId/cards/:cardId", async (req, res) => {
 
 router.put("/:userId/cards/", async (req, res) => {
   try {
-    const cards = req.body;
+    const cardsPayload = req.body;
     // const matchingCards = [];
     // const nonMatchingCards = [];
     const response = await User.findById(req.params.userId);
@@ -164,40 +164,44 @@ router.put("/:userId/cards/", async (req, res) => {
     const newUserCardsArray = [...response.cards];
     const userSeenCardIds = {};
 
-
     /* First we need to check which of the cards we're adding/updating are already
        part of the user.cards array and which aren't, then add the "timesSeen" value accordingly.
-       Finally we remove the identical cards from the user-cards array, push the new ones, clean it up and boom
+       Passing the timesSeen value to the userSeenCardIds array serves both as a "true" value and
+       as a way to update it on the right cards.
+       Finally we remove the identical cards from the user-cards array, push the new ones, 
+       clean it up and boom
     */
 
+       /* 
+       Need to change score to highScore and create an averageScore field.
+       */
     response.cards.forEach(
-      (card) => (userSeenCardIds[`${card.cardId}`] = true)
+      (card) => (userSeenCardIds[`${card.cardId}`] = {
+        timesSeen: card.timesSeen,
+        score: card.score
+      })
     );
-    console.log('userSeenCardIds', userSeenCardIds);
-    cards.forEach((card) => {
+    cardsPayload.forEach((card) => {
       let updatedCard = { ...card };
       if (userSeenCardIds[`${card.cardId}`]) {
-        updatedCard.timesSeen = card.timesSeen + 1;
-        delete newUserCardsArray[
-          newUserCardsArray.findIndex((elem) => elem.cardId == card.cardId)
-        ];
+        updatedCard.timesSeen = 1 + userSeenCardIds[`${card.cardId}`].timesSeen;
+        if (updatedCard.score < userSeenCardIds[`${card.cardId}`].score) {
+          updatedCard.score = userSeenCardIds[`${card.cardId}`].score
+        }
+        newUserCardsArray.splice(newUserCardsArray.findIndex((elem) => elem.cardId == card.cardId), 1);
         newUserCardsArray.push(updatedCard);
+        console.log('updatedCard', updatedCard)
       } else {
         updatedCard.timesSeen = 1;
         newUserCardsArray.push(updatedCard);
       }
     });
-    console.log('newUserCardsArray', newUserCardsArray);
-    const cleanUserCardsArray = newUserCardsArray.filter(
-      (elem) => elem !== undefined
-    );
-      console.log('cleanUserCardsArray', cleanUserCardsArray);
+   
     const updateResponse = await User.findByIdAndUpdate(
       req.params.userId,
-      { cards: cleanUserCardsArray },
+      { cards: newUserCardsArray },
       { new: true }
     );
-
     res.status(200).json(updateResponse);
   } catch (e) {
     res.status(500).json({ message: e.message });

@@ -27,6 +27,7 @@ router.post("/signup", async (req, res) => {
     const createdUser = await User.create({
       email,
       username,
+      userType: 'user',
       password: hashedPassword,
       profilePicture,
     });
@@ -36,6 +37,7 @@ router.post("/signup", async (req, res) => {
       .json({
         email: createdUser.email,
         username: createdUser.username,
+        userType: createdUser.userType,
         _id: createdUser._id,
         profilePicture: createdUser.profilePicture,
       });

@@ -8,6 +8,7 @@ const userSchema = new Schema(
       required: [true, "Username is required"],
       unique: true,
     },
+    userType: String,
     email: {
       type: String,
       required: [true, "Email is required."],
@@ -29,6 +30,7 @@ const userSchema = new Schema(
         cardId: { type: Schema.Types.ObjectId, ref: "Card" },
         timesSeen: { type: Number, default: 0 },
         score: { type: Number },
+        averageScore: Number
       },
     ],
     decks: [
