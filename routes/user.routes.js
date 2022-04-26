@@ -165,11 +165,11 @@ router.put("/:userId/cards/", async (req, res) => {
     const userSeenCardIds = {};
 
     /* First we need to check which of the cards we're adding/updating are already
-       part of the user.cards array and which aren't, then add the "timesSeen" value accordingly.
-       Passing the timesSeen value to the userSeenCardIds array serves both as a "true" value and
-       as a way to update it on the right cards.
+       part of the user.cards array and which aren't, then add the "timesSeen & score" values accordingly.
+       Passing these values to the userSeenCardIds array serves both as a "true" value and
+       as a way to update them on the right cards.
        Finally we remove the identical cards from the user-cards array, push the new ones, 
-       clean it up and boom
+       clean it up and boom.
     */
 
        /* 
@@ -178,23 +178,21 @@ router.put("/:userId/cards/", async (req, res) => {
     response.cards.forEach(
       (card) => (userSeenCardIds[`${card.cardId}`] = {
         timesSeen: card.timesSeen,
+        averageScore: card.averageScore,
         score: card.score
       })
     );
     cardsPayload.forEach((card) => {
       let updatedCard = { ...card };
+      updatedCard.timesSeen = 1;
+      let accumScore = (card.timesSeen * card.averageScore) || card.score;
       if (userSeenCardIds[`${card.cardId}`]) {
-        updatedCard.timesSeen = 1 + userSeenCardIds[`${card.cardId}`].timesSeen;
-        if (updatedCard.score < userSeenCardIds[`${card.cardId}`].score) {
-          updatedCard.score = userSeenCardIds[`${card.cardId}`].score
-        }
+        updatedCard.timesSeen += userSeenCardIds[`${card.cardId}`].timesSeen;
         newUserCardsArray.splice(newUserCardsArray.findIndex((elem) => elem.cardId == card.cardId), 1);
-        newUserCardsArray.push(updatedCard);
-        console.log('updatedCard', updatedCard)
-      } else {
-        updatedCard.timesSeen = 1;
-        newUserCardsArray.push(updatedCard);
-      }
+      } 
+      updatedCard.averageScore = accumScore / updatedCard.timesSeen;
+      console.log(updatedCard);
+      newUserCardsArray.push(updatedCard);
     });
    
     const updateResponse = await User.findByIdAndUpdate(
