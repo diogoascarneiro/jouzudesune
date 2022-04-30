@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const User = require("../models/User.model");
 const Card = require("../models/Card.model");
+const bcrypt = require("bcryptjs");
 
 /* Base routes */
 
@@ -39,9 +40,13 @@ router.put("/:userId", async (req, res) => {
   try {
     const { username, email, password, profilePicture, cards, decks } =
       req.body;
+
+      const salt = bcrypt.genSaltSync(10);
+    const hashedPassword = bcrypt.hashSync(password, salt);
+
     const response = await User.findByIdAndUpdate(
       req.params.userId,
-      { username, email, password, profilePicture, cards, decks },
+      { username, email, password:hashedPassword, profilePicture, cards, decks },
       { new: true }
     );
     res.status(200).json(response);
