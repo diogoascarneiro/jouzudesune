@@ -6,7 +6,8 @@ const deckSchema = new Schema(
         cards: [{type: Schema.Types.ObjectId, ref: "Card"}],
         difficulty: Number,
         description: String,
-        image: {type: String, default: "/img/decks/default.jpg"}
+        image: {type: String, default: "/img/decks/default.jpg"},
+        dependencies: [{type: Schema.Types.ObjectId, ref: "Deck"}]
     }
 )
 const Deck = model("Deck", deckSchema);
