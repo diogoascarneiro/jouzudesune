@@ -162,8 +162,6 @@ router.put("/:userId/cards/:cardId", async (req, res) => {
 router.put("/:userId/cards/", async (req, res) => {
   try {
     const cardsPayload = req.body;
-    // const matchingCards = [];
-    // const nonMatchingCards = [];
     const response = await User.findById(req.params.userId);
 
     const newUserCardsArray = [...response.cards];
@@ -177,9 +175,6 @@ router.put("/:userId/cards/", async (req, res) => {
        clean it up and boom.
     */
 
-       /* 
-       Need to change score to highScore and create an averageScore field.
-       */
     response.cards.forEach(
       (card) => (userSeenCardIds[`${card.cardId}`] = {
         timesSeen: card.timesSeen,
@@ -196,7 +191,7 @@ router.put("/:userId/cards/", async (req, res) => {
         newUserCardsArray.splice(newUserCardsArray.findIndex((elem) => elem.cardId == card.cardId), 1);
       } 
       updatedCard.averageScore = accumScore / updatedCard.timesSeen;
-      console.log(updatedCard);
+      //console.log(updatedCard);
       newUserCardsArray.push(updatedCard);
     });
    
