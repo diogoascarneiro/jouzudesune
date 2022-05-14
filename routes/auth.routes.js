@@ -47,14 +47,14 @@ router.post("/signup", async (req, res) => {
 });
 
 router.post("/login", async (req, res) => {
-  const { username, password } = req.body;
+  const { email, password } = req.body;
 
-  if (!username || !password) {
+  if (!email || !password) {
     res.status(400).json({ message: "missing fields" });
     return;
   }
 
-  const foundUser = await User.findOne({ username });
+  const foundUser = await User.findOne({ email });
   if (!foundUser) {
     res.status(401).json({ message: "invalid login" });
     return;
@@ -84,7 +84,10 @@ router.post("/login", async (req, res) => {
   res.status(200).json({ authToken });
 });
 
-router.get("/verify", isAuthenticated, (req, res) => {
+router.get("/verify", isAuthenticated, async (req, res) => {
+  const foundUser = await User.findOne({ username: req.payload.username });
+  req.payload.cards = foundUser.cards;
+  req.payload.decks = foundUser.decks;
   res.status(200).json(req.payload);
 });
 
